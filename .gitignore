@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg
+*.egg-info/
+dist/
+build/
+*.log
+
+# Sessões do Venom Bot
+tokens/
+
+# Virtual environment
+venv/
+env/
+ENV/
+.venv/
+
+# Django
+*.sqlite3
+*.db
+*.bak
+*.pot
+*.pyc
+db.sqlite3
+local_settings.py
+media/
+staticfiles/
+static_root/
+.django-*
+
+# Secrets / configs
+*.env
+.env.*
+config.ini
+*.pem
+
+# VSCode / IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# macOS / Linux / Windows
+.DS_Store
+Thumbs.db
+
+# Node.js (venom-bot)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Logs / temporários
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# Arquivos gerados
+*.pdf
+*.xlsx
+output/
+uploads/
+exportados/
