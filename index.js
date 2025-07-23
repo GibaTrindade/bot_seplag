@@ -29,7 +29,7 @@ function start(client) {
     // ⚠️ Inicia sessão ou reinicia timeout
     if (!sessoes.has(user)) {
       iniciarSessao(user);
-      await client.sendText(user, '🧾 Olá, bem-vindo ao Bot-Lane,\nPor favor, digite seu CPF (somente números):');
+      await client.sendText(user, '🧾 Olá, sou Horácio, me identifico com um dinossauro (T-Rex),\nMinha paciência é curta, então faça as coisas sem muita demora...\nPor favor, digite seu CPF (não me irrite, somente números):');
       return;
     }
 
@@ -49,7 +49,7 @@ function start(client) {
       sessao.etapa = 'menu';
       sessoes.set(user, sessao);
 
-      await client.sendText(user, `✅ CPF registrado com sucesso!\n`);
+      await client.sendText(user, `✅ Que lindo! Encontramos seu CPF na nossa base de dados!\n`);
       await client.sendText(user, menuTexto());
       return;
     }
@@ -82,6 +82,12 @@ function start(client) {
             sessoes.set(user, sessao);
             await client.sendText(user, '📅 Digite o *ANO* da agenda (ex: 2025):');
             return;
+        case '6':
+            sessao.etapa = 'buscar_emenda_nome';
+            sessoes.set(user, sessao);
+            await client.sendText(user, '🔎 Digite o nome ou parte do nome do parlamentar que deseja buscar:');
+            return;
+
         default:
           await client.sendText(user, '❌ Opção inválida. Tente novamente.');
       }
@@ -120,6 +126,73 @@ function start(client) {
     return;
     }
 
+    if (sessao.etapa === 'buscar_emenda_nome') {
+        sessao.nome_parlamentar = message.body.trim();
+        sessao.etapa = 'escolher_parlamentar';
+
+        try {
+            const response = await axios.get(URL + `api/emendas/?nome=${encodeURIComponent(sessao.nome_parlamentar)}`);
+            const lista = response.data.resultados;
+
+            if (!lista.length) {
+            await client.sendText(user, '❌ Nenhum parlamentar encontrado com esse nome. Tente novamente.');
+            sessoes.set(user, { etapa: 'menu', cpf: sessao.cpf });
+            return;
+            }
+
+            sessao.parlamentares = lista;
+
+            let texto = '🔍 Parlamentares encontrados:\n\n';
+            lista.forEach((p, i) => {
+            texto += `${i + 1}️⃣ ${p.PARLAMENTAR}\n`;
+            });
+
+            texto += '\nDigite o número correspondente ao parlamentar que deseja consultar:';
+            await client.sendText(user, texto);
+        } catch (err) {
+            console.error(err);
+            await client.sendText(user, '❌ Erro ao buscar parlamentares. Tente novamente mais tarde.');
+            sessoes.set(user, { etapa: 'menu', cpf: sessao.cpf });
+        }
+
+        return;
+        }
+
+        if (sessao.etapa === 'escolher_parlamentar') {
+        const escolha = parseInt(message.body.trim());
+        if (isNaN(escolha) || escolha < 1 || escolha > sessao.parlamentares.length) {
+            await client.sendText(user, '❌ Escolha inválida. Digite o número do parlamentar listado.');
+            return;
+        }
+
+        const parlamentar = sessao.parlamentares[escolha - 1];
+
+        await client.sendText(user, `📄 Você escolheu: *${parlamentar.PARLAMENTAR}*\n\n🔎 Buscando resumo...`);
+
+        try {
+        const resumoResp = await axios.get(`${URL}api/emendas/resumo/${parlamentar.ID_PARLAMENTAR}/`);
+        const dados = resumoResp.data;
+
+        await client.sendText(user, `📊 *Resumo das Emendas de ${dados.nome}*\n\n` +
+            `💰 Investimento previsto: R$ ${dados.investimento_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\n` +
+            `✅ Total liquidado: R$ ${dados.liquidado_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\n` +
+            `🚫 Emendas com impedimento técnico: ${dados.impedimentos}`);
+        } catch (err) {
+        console.error(err.message);
+        await client.sendText(user, '⚠️ Não foi possível carregar o resumo do parlamentar.');
+        }
+
+
+        // Aqui você pode buscar as emendas completas por ID_PARLAMENTAR se quiser
+        // Exemplo de requisição futura:
+        // const dados = await axios.get(`.../api/emendas-detalhes/?id=${parlamentar.ID_PARLAMENTAR}`)
+
+        sessoes.set(user, { etapa: 'menu', cpf: sessao.cpf });
+        await client.sendText(user, menuTexto());
+        return;
+    }
+
+
 
   });
 }
@@ -152,12 +225,13 @@ function reiniciarTimeout(user) {
 
 // 📋 Texto do menu
 function menuTexto() {
-  return `🍼 *Bem-vindo ao Bot ZecaTron!*\n\nEscolha uma opção:
+  return `🍼 *Bem-vindo, sou Horácio, me identifico com um dinossauro!*\n\nEscolha uma opção:
 1️⃣ Minha Carga Horária no PFC
 2️⃣ Cursos Disponíveis
-3️⃣ Frase Motivacional
+3️⃣ Frase (des)Motivacional
 4️⃣ Fale com o Secretário
 5️⃣ Baixar Agenda (PDF)
+6️⃣ Emendas Parlamentares
 
 Digite o número da opção.`;
 }
