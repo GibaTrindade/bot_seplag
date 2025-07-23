@@ -174,8 +174,8 @@ function start(client) {
         const dados = resumoResp.data;
 
         await client.sendText(user, `📊 *Resumo das Emendas de ${dados.nome}*\n\n` +
-            `💰 Investimento previsto: R$ ${dados.investimento_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\n` +
-            `✅ Total liquidado: R$ ${dados.liquidado_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\n` +
+            `💰 Investimento previsto: ${dados.investimento_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\n` +
+            `✅ Total liquidado: ${dados.liquidado_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\n` +
             `🚫 Emendas com impedimento técnico: ${dados.impedimentos}`);
         } catch (err) {
         console.error(err.message);
