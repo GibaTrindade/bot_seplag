@@ -14,8 +14,9 @@ venom
   .create({
     session: 'menu-bot',
     multidevice: true,
-    headless: false,
-    browserPathExecutable: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    headless: true,
+    browserPathExecutable: '/bin/google-chrome',
+    //browserPathExecutable: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
     updatesLog: false,
     autoClose: 0
   })
