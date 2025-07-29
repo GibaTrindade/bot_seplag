@@ -83,10 +83,16 @@ function start(client) {
             await client.sendText(user, '📅 Digite o *ANO* da agenda (ex: 2025):');
             return;
         case '6':
-            sessao.etapa = 'buscar_emenda_nome';
+            sessao.etapa = 'submenu_emendas';
             sessoes.set(user, sessao);
-            await client.sendText(user, '🔎 Digite o nome ou parte do nome do parlamentar que deseja buscar:');
-            return;
+            await client.sendText(user, `📊 *Consultas de Emendas Parlamentares*\n\nEscolha uma opção:
+        1️⃣ Top 10 Deputados com maiores emendas
+        2️⃣ Top 10 Municípios com maiores emendas
+        3️⃣ Buscar por nome do deputado
+
+Digite o número da opção desejada.`);
+    return;
+
 
         default:
           await client.sendText(user, '❌ Opção inválida. Tente novamente.');
@@ -182,7 +188,6 @@ function start(client) {
         await client.sendText(user, '⚠️ Não foi possível carregar o resumo do parlamentar.');
         }
 
-
         // Aqui você pode buscar as emendas completas por ID_PARLAMENTAR se quiser
         // Exemplo de requisição futura:
         // const dados = await axios.get(`.../api/emendas-detalhes/?id=${parlamentar.ID_PARLAMENTAR}`)
@@ -192,7 +197,34 @@ function start(client) {
         return;
     }
 
+     if (sessao.etapa === 'submenu_emendas') {
+          const escolha = message.body.trim();
 
+          switch (escolha) {
+              case '1':
+                  await client.sendText(user, '🔄 Buscando Top 10 Deputados...');
+                  await enviarTopDeputados(client, user);
+                  break;
+              case '2':
+                  await client.sendText(user, '🔄 Buscando Top 10 Municípios...');
+                  await enviarTopMunicipios(client, user);
+                  break;
+              case '3':
+                  sessao.etapa = 'buscar_emenda_nome';
+                  sessoes.set(user, sessao);
+                  await client.sendText(user, '🔎 Digite o nome ou parte do nome do parlamentar que deseja buscar:');
+                  return;
+              default:
+                  await client.sendText(user, '❌ Opção inválida. Digite 1, 2 ou 3.');
+                  return;
+          }                 
+
+          // Após mostrar os dados, volta ao menu principal
+          sessao.etapa = 'menu';
+          sessoes.set(user, sessao);
+          await client.sendText(user, menuTexto());
+          return;
+      }
 
   });
 }
@@ -319,3 +351,38 @@ async function enviarAgendaPdf(client, user, ano, mes) {
     if (fs.existsSync(arquivoPath)) fs.unlinkSync(arquivoPath); // limpa arquivo
   }
 }
+
+async function enviarTopDeputados(client, user) {
+    try {
+        const res = await axios.get(URL + 'api/emendas/top-deputados/');
+        const lista = res.data.top10;
+
+        let texto = '🏛️ *Top 10 Deputados com maiores emendas:*\n\n';
+        lista.forEach((dep, i) => {
+            texto += `${i + 1}️⃣ ${dep.nome} — R$ ${dep.total_emendas}\n`;
+        });
+
+        await client.sendText(user, texto);
+    } catch (err) {
+        console.error(err);
+        await client.sendText(user, '❌ Erro ao buscar os deputados. Tente novamente mais tarde.');
+    }
+}
+
+async function enviarTopMunicipios(client, user) {
+    try {
+        const res = await axios.get(URL + 'api/emendas/top-municipios/');
+        const lista = res.data.top10;
+
+        let texto = '🏙️ *Top 10 Municípios com maiores emendas:*\n\n';
+        lista.forEach((m, i) => {
+            texto += `${i + 1}️⃣ ${m.municipio} — R$ ${m.total_emendas}\n`;
+        });
+
+        await client.sendText(user, texto);
+    } catch (err) {
+        console.error(err);
+        await client.sendText(user, '❌ Erro ao buscar os municípios. Tente novamente mais tarde.');
+    }
+}
+
