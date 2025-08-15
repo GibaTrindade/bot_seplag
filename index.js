@@ -15,6 +15,7 @@ venom
     session: 'menu-bot',
     multidevice: true,
     headless: true,
+    //headless: false,
     browserPathExecutable: '/bin/google-chrome',
     //browserPathExecutable: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
     updatesLog: false,
@@ -258,7 +259,7 @@ function reiniciarTimeout(user) {
 
 // 📋 Texto do menu
 function menuTexto() {
-  return `🍼 *Bem-vindo, sou Horácio, me identifico com um dinossauro!*\n\nEscolha uma opção:
+  return `🍼 *Escolha uma opção:*\n
 1️⃣ Minha Carga Horária no PFC
 2️⃣ Cursos Disponíveis
 3️⃣ Frase (des)Motivacional

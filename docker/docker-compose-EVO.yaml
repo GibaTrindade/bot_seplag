@@ -1,0 +1,47 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15
+    restart: always
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123@mudar
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - evolution-net
+
+  redis:
+    image: redis:7
+    restart: always
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - evolution-net
+
+  evolution-api:
+    container_name: evolution_api
+    image: atendai/evolution-api:v2.1.1
+    restart: always
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    volumes:
+      - evolution_instances:/evolution/instances
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - evolution-net
+
+volumes:
+  evolution_instances:
+  postgres_data:
+
+networks:
+  evolution-net:
+    external: true
